@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = CP5.ino
+elf = build/CP5.ino.elf

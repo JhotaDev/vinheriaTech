@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.cache/
+node_modules/
+dist/
+
+# Build e Wokwi
+build/
+*.bin
+*.elf
+*.hex
+
+# Logs e Ambientes
+.env
+.env.local
+.env.*.local
+outbox_emails/*.html
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SO
+.DS_Store
+Thumbs.db
+

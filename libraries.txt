@@ -1,0 +1,7 @@
+PubSubClient
+DHT sensor library
+Adafruit Unified Sensor
+Adafruit SSD1306
+Adafruit GFX Library
+MFRC522
+
