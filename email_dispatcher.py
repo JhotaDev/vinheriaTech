@@ -2,7 +2,7 @@
 ========================================================================================
 SISTEMA DE DESPACHO AUTOMATIZADO DE E-MAILS DE EMERGÊNCIA - VINHERIATECH (CP5)
 AUTORES: Equipe Prisma
-DISCIPLINA: Disruptive Architectures - IoT & Cloud Computing (Prof. Dr. Fábio Cabrini)
+DISCIPLINA: Edge Computing e Computer Systems (Prof. Dr. Fábio Cabrini)
 ========================================================================================
 
 Este serviço monitora o fluxo MQTT do ESP32/Wokwi em segundo plano.

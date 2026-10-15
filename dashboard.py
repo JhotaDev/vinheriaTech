@@ -2,7 +2,7 @@
 ========================================================================================
 SISTEMA DE SUPERVISÃO E GÊMEO DIGITAL DE VINHERIAS - CHECK POINT 5 (IoT & FIWARE)
 AUTORES: Equipe Prisma
-DISCIPLINA: Disruptive Architectures - IoT & Cloud Computing
+DISCIPLINA: Edge Computing e Computer Systems
 ORIENTADOR: Prof. Dr. Fábio Henrique Cabrini
 ========================================================================================
 

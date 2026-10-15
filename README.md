@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Simulação-Wokwi%20Simulator-brightgreen?style=for-the-badge" alt="Wokwi" />
 </p>
 
-> **Check Point 5 — Disruptive Architectures: IoT, IoB & Generative IA**  
+> **Check Point 5 — Edge Computing e Computer Systems**  
 > **Orientador:** Prof. Dr. Fábio Henrique Cabrini  
 > **Instituição:** FIAP  
 > **Equipe de Desenvolvimento:** Equipe Prisma  
@@ -30,7 +30,7 @@
   - [E. Stack FIWARE Local via Docker](#e-stack-fiware-local-via-docker-opcional)
 - [7. Protocolo de Comunicação e Mensageria](#-7-protocolo-de-comunicação-e-mensageria)
 - [8. Guia para Apresentação e Demonstração Prática](#-8-guia-para-apresentação-e-demonstração-prática)
-- [9. Equipe e Licença](#-9-equipe-e-licença)
+- [9. Integrantes do Grupo e Licença](#-9-integrantes-do-grupo--licença)
 
 ---
 
@@ -58,7 +58,10 @@ A solução combina computação de borda baseada em **ESP32**, protocolos de Io
 │   🛡️ AUDITORIA RFID   │    🍇 MASCOTE DINÂMICO   │      🌐 GÊMEO DIGITAL 3D      │
 │  Silenciamento seguro │   Expressões em tempo    │    Espelho bidirecional em    │
 │  com crachá físico    │   real no display OLED   │     Three.js e WebSockets     │
-└───────────────────────┴──────────────────────────┴───────────────────────────────┘
+├───────────────────────┴──────────────────────────┴───────────────────────────────┤
+│                     ⚡ CALIBRAÇÃO DINÂMICA CROSS-DEVICE                         │
+│       Sincronização assíncrona em tempo real entre PC e Celular via MQTT         │
+└──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 1. Auditoria e Reconhecimento Presencial com RFID (MFRC522)
@@ -67,7 +70,7 @@ A solução combina computação de borda baseada em **ESP32**, protocolos de Io
 * O microcontrolador registra o evento, emite um bip harmônico de confirmação, envia o log de auditoria ao broker MQTT e o dashboard exibe instantaneamente a matrícula e o horário do operador. Cartões não autorizados recebem um tom grave de rejeição.
 
 ### 2. Interface Gamificada "VinhoGochi" no Display Gráfico
-* Substitui textos brutos por um mascote virtual dinâmico estilizado no display (SSD1306 / ST7735S), permitindo diagnósticos visuais imediatos mesmo a longa distância:
+* Substitui textos brutos por um mascote virtual dinâmico estilizado no display (SSD1306 / ST7735S) e no dashboard web, permitindo diagnósticos visuais imediatos mesmo a longa distância:
   * **Feliz `( ^_^ )`:** Condições microclimáticas em perfeito equilíbrio.
   * **Calor `( ;_; )`:** Gotas de transpiração na tela (estresse térmico).
   * **Frio `( >_< )`:** Mascote tremendo de frio.
@@ -86,6 +89,12 @@ A solução combina computação de borda baseada em **ESP32**, protocolos de Io
 * Um microserviço assíncrono em Python monitora o tráfego MQTT 24/7.
 * Ao detectar violações extremas de conservação (ex.: temperatura $> 20^\circ\text{C}$ ou $< 10^\circ\text{C}$, ou umidade $> 85\%$), gera e dispara imediatamente um **e-mail HTML estilizado** com a paleta formal da vinheria diretamente para a caixa postal do enólogo responsável.
 * Possui trava de segurança (*cooldown* de 25s) para evitar sobrecarga de envios e salva uma cópia de auditoria na pasta `outbox_emails/`.
+
+### 5. Calibração Dinâmica Sincronizada em Tempo Real (PC ⇄ Celular)
+* **Sincronização Assíncrona Bidirecional:** Qualquer ajuste nas faixas de corte da adega (Temperatura Mín/Máx, Umidade Mín/Máx e Luz Máx) realizado no computador do operador é refletido **instantaneamente no celular do enólogo na ronda** (e vice-versa), via canal de mensageria MQTT no tópico `/TEF/wine001/triggers`.
+* **Persistência em Nuvem com Mensagens Retidas (Retain MQTT):** As calibrações são publicadas com `retain: true` no broker HiveMQ. Isso garante que, mesmo que o celular seja aberto horas após o ajuste no PC, ele já carregue imediatamente a calibração mais recente salva na nuvem.
+* **Debounced Live Broadcast:** Ao deslizar os seletores no navegador, os novos limites são transmitidos com debounce de 280ms, atualizando em tempo real as curvas dos gráficos históricos, os cartões de telemetria e o firmware do ESP32 via `/TEF/wine001/cmd`.
+* **Identificação de Origem no Painel:** A interface exibe visualmente qual dispositivo realizou o ajuste (`📲 Sincronizado via Computador` ou `💻 Sincronizado via Celular`).
 
 ---
 
@@ -387,6 +396,20 @@ A comunicação adota o protocolo **UltraLight 2.0 sobre MQTT**, estruturado em 
 
 * **Tópico de Log de Auditoria:** `/TEF/wine001/attrs/log`
 * **Tópico de Comandos Remotos (Dashboard $\to$ ESP32):** `/TEF/wine001/cmd`
+* **Tópico de Calibração Dinâmica Sincronizada (PC ⇄ Celular):** `/TEF/wine001/triggers`
+  * **Payload (JSON Retained):**
+    ```json
+    {
+      "tempMin": 12.0,
+      "tempMax": 16.0,
+      "humMin": 60.0,
+      "humMax": 75.0,
+      "lumMax": 30,
+      "sender": "vinheria_pc_7a8b9c",
+      "deviceType": "Computador",
+      "timestamp": 1728956000000
+    }
+    ```
 
 ---
 
@@ -396,25 +419,32 @@ Para garantir o melhor impacto na demonstração ao vivo:
 
 1. **Abertura do Problema (30s):** Explique que a perda de temperatura ou incidência luminosa em adegas de vinhos nobres causa oxidação irreversível em safras que custam dezenas de milhares de reais.
 2. **Demonstração em Tempo Real (1 min):** Coloque a janela do Wokwi e a do Dashboard Web (React 19) lado a lado na tela. Aponte para o display OLED com o mascote "VinhoGochi" feliz e o Gêmeo Digital 3D sincronizado.
-3. **Simulação de Anomalia Térmica (1 min):** No Wokwi, clique no sensor DHT-22 e eleve a temperatura para **$24^\circ\text{C}$**.
-   * O mascote mudará para suor/desespero.
+3. **Calibração Dinâmica Cross-Device (1 min):** Abra o site no computador e no smartphone simultaneamente. Deslize os limites de temperatura no celular e mostre a tela do computador atualizando no mesmo milissegundo com o aviso *"Sincronizado via Celular"*, sincronizando também o firmware do ESP32 via MQTT.
+4. **Simulação de Anomalia Térmica (1 min):** No Wokwi, clique no sensor DHT-22 e eleve a temperatura para **$24^\circ\text{C}$**.
+   * O mascote mudará para suor/desespero `(;_;)`.
    * O LED azul piscará continuamente.
    * O buzzer tocará o alarme de alta frequência.
    * O Dashboard acusará anomalia e registrará o evento no histórico.
    * O worker Python despachará o e-mail de alerta em segundo plano.
-4. **O Grande Diferencial — Auditoria Presencial por RFID (1 min):** Aproxime o Cartão Master (`01:02:03:04`) do leitor MFRC522 no Wokwi (clique em *Tap* no cartão azul).
+5. **O Grande Diferencial — Auditoria Presencial por RFID (1 min):** Aproxime o Cartão Master (`01:02:03:04`) do leitor MFRC522 no Wokwi (clique em *Tap* no cartão azul).
    * O som do alarme cessa na hora.
    * O display confirma: `ACK: OP MASTER [OK]`.
    * A tabela de auditoria do frontend é atualizada na hora com o horário do atendimento e a matrícula do operador.
-5. **Encerramento Técnico (30s):** Destaque a conformidade com as normas FIWARE, o desacoplamento de microsserviços e o firmware 100% não-bloqueante baseado em `millis()`.
+6. **Encerramento Técnico (30s):** Destaque a conformidade com as normas FIWARE, o desacoplamento de microsserviços, a sincronização cross-device via WebSockets MQTT e o firmware 100% não-bloqueante baseado em `millis()`.
 
 ---
 
-## 👥 9. Equipe e Licença
+## 👥 9. Integrantes do Grupo & Licença
 
-### Desenvolvido pela Equipe Prisma
-* **Projeto Acadêmico:** FIAP — Engenharia de Softwarw
-* **Disciplina:** DEdge Computing e Computer Systems
+### 👥 Integrantes — Equipe Prisma
+* **João Gabriel Vieira Mesquita** — RM: 573685
+* **Ian Felipe Tassiotto Gomes** — RM: 570812
+* **Hyan Hideo Silveira Teodoro Ayabe** — RM: 571005
+* **Elizeu Antônio de Queiroz** — RM: 569433
+* **Guilherme de Sousa Caiano** — RM: 570491
+
+* **Projeto Acadêmico:** FIAP
+* **Disciplina:** Edge Computing e Computer Systems
 * **Orientação:** Prof. Dr. Fábio Henrique Cabrini
 
 ### Licença
