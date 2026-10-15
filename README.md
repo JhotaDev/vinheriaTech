@@ -221,9 +221,6 @@ CP5/
 │   │       ├── TutorialModal.tsx              # Guia interativo integrado à interface
 │   │       └── PrismaIntroSplash.tsx          # Animação inicial de boas-vindas
 │   └── public/                                # Ativos estáticos e ícones
-└── referencias/                               # Material complementar e Docker FIWARE
-    └── fiware-main/
-        └── docker-compose.yml                 # Stack completa do ecossistema FIWARE
 ```
 
 ---
@@ -316,14 +313,10 @@ Caso deseje visualizar séries temporais históricas em um ambiente baseado em P
 
 ---
 
-### E. Stack FIWARE Local via Docker (Opcional)
+### E. Stack FIWARE via Docker ou Nuvem (Opcional)
 
-Para rodar a suíte corporativa FIWARE na sua máquina:
-1. Acesse a pasta do compose:
-   ```bash
-   cd referencias/fiware-main
-   docker-compose up -d
-   ```
+Por padrão, a solução utiliza o broker público HiveMQ (`broker.hivemq.com`), dispensando qualquer instalação de Docker local. Caso deseje executar a stack FIWARE clássica (Orion na porta 1026, IoT Agent na 4041 e STH-Comet na 8666):
+1. Execute sua stack Docker (`docker compose up -d`) ou aponte para o IP da VM do laboratório.
 2. Provisione o Service Group no IoT Agent (porta 4041):
    ```bash
    curl -iX POST 'http://localhost:4041/iot/services' \
