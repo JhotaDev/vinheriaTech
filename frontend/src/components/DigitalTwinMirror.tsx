@@ -44,26 +44,37 @@ export const DigitalTwinMirror: React.FC<DigitalTwinMirrorProps> = ({
   };
 
   // Determine Tamagotchi Mood & OLED Status
-  let moodFace = '( ^ _ ^ )';
-  let moodName = 'VinhoGochi: Feliz & Equilibrado';
+  let moodFace = '( ^_^ )';
+  let moodName = 'Feliz & Estável';
   let oledStatus = 'ADEGA SEGURA';
   let oledStatusColor = 'text-emerald-400';
 
   if (isAlarmActive && !isAcknowledged) {
     if (isAlarmExtreme) {
-      moodFace = '( ! _ ! )';
-      moodName = 'VinhoGochi: PÂNICO TOTAL!';
+      moodFace = '( !_! )';
+      moodName = 'PÂNICO TOTAL';
       oledStatus = '! EXTREMO !';
       oledStatusColor = 'text-red-500 animate-pulse';
     } else {
-      moodFace = '( > _ < )';
-      moodName = 'VinhoGochi: Anomalia Térmica';
+      if (temperature > 16.0) {
+        moodFace = '( ;_; )';
+        moodName = 'Calor Excessivo';
+      } else if (temperature < 12.0) {
+        moodFace = '( >_< )';
+        moodName = 'Frio Excessivo';
+      } else if (luminosity > 30) {
+        moodFace = '( *O* )';
+        moodName = 'Luz Excessiva';
+      } else {
+        moodFace = '( >_< )';
+        moodName = 'Alerta Oscilação';
+      }
       oledStatus = '! CRITICO !';
       oledStatusColor = 'text-amber-400 animate-pulse';
     }
   } else if (isAcknowledged) {
-    moodFace = '( ^ _ ~ )';
-    moodName = 'VinhoGochi: Aliviado com a Ronda!';
+    moodFace = '( B-) )';
+    moodName = 'Ronda Master';
     oledStatus = 'ALERTA RECONHECIDO';
     oledStatusColor = 'text-cyan-400';
   }
@@ -116,11 +127,11 @@ export const DigitalTwinMirror: React.FC<DigitalTwinMirrorProps> = ({
           {/* OLED Center: Tamagotchi + Readings */}
           <div className="grid grid-cols-12 gap-2 my-2 items-center">
             {/* Tamagotchi Mascot */}
-            <div className="col-span-5 bg-black/60 border border-zinc-800 rounded p-2 text-center">
-              <div className="text-2xl font-bold tracking-widest text-emerald-300 select-none py-1">
+            <div className="col-span-5 bg-black/70 border border-zinc-800 rounded-lg p-1.5 text-center flex flex-col items-center justify-center min-h-[58px]">
+              <div className="text-sm font-bold font-mono text-emerald-300 select-none tracking-normal whitespace-nowrap py-0.5">
                 {moodFace}
               </div>
-              <div className="text-[9px] text-zinc-400 truncate">
+              <div className="text-[9px] text-zinc-400 font-mono truncate max-w-full px-1">
                 {moodName}
               </div>
             </div>

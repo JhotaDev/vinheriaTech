@@ -106,6 +106,12 @@ export function App() {
   const [mqttConnected, setMqttConnected] = useState<boolean>(false);
   const mqttClientRef = useRef<MqttClient | null>(null);
 
+  // 8. Device Identification for Cross-Device Sync (PC <-> Mobile)
+  const isMobileDevice = typeof window !== 'undefined' && (window.innerWidth < 768 || /Mobi|Android|iPhone/i.test(navigator.userAgent));
+  const myDeviceType = isMobileDevice ? 'Celular' : 'Computador';
+  const myClientIdRef = useRef<string>(`vinheria_${isMobileDevice ? 'mob' : 'pc'}_${Math.random().toString(16).substring(2, 8)}`);
+  const [lastSyncedDevice, setLastSyncedDevice] = useState<string>('');
+
   // Status Evaluation
   const isTempExtreme = temperature < 10.0 || temperature > 20.0;
   const isHumExtreme = humidity < 50.0 || humidity > 85.0;
@@ -126,7 +132,7 @@ export function App() {
   useEffect(() => {
     // HiveMQ Public WebSocket broker on port 8884 (TLS/WSS) or fallback 8000 (WS)
     const wsUrl = 'wss://broker.hivemq.com:8884/mqtt';
-    const clientId = `react_vinheria_${Math.random().toString(16).substring(2, 8)}`;
+    const clientId = myClientIdRef.current;
 
     const client = mqtt.connect(wsUrl, {
       clientId,
@@ -141,6 +147,7 @@ export function App() {
       client.subscribe('/TEF/wine001/attrs');
       client.subscribe('/TEF/wine001/attrs/#');
       client.subscribe('/TEF/wine001/cmdexe');
+      client.subscribe('/TEF/wine001/triggers');
     });
 
     client.on('error', err => {
@@ -269,6 +276,39 @@ export function App() {
           setAckTime(nowTime);
         }
       }
+
+      // 5. Sincronização Assíncrona de Calibração em Tempo Real (PC <-> Celular)
+      else if (topic === '/TEF/wine001/triggers') {
+        try {
+          const data = JSON.parse(payload);
+          if (data && typeof data.tempMin === 'number') {
+            // Sincroniza se a alteracao veio de outro dispositivo (ou ao conectar via retain)
+            if (data.sender !== myClientIdRef.current) {
+              setTriggers({
+                tempMin: Number(data.tempMin),
+                tempMax: Number(data.tempMax),
+                humMin: Number(data.humMin),
+                humMax: Number(data.humMax),
+                lumMax: Number(data.lumMax),
+              });
+              const origin = data.deviceType || (data.sender?.includes('mob') ? 'Celular' : 'Computador');
+              setLastSyncedDevice(origin);
+              console.log(`>> [TRIGGERS SYNC] Recebido ajuste remoto via ${origin}:`, data);
+            }
+          }
+        } catch {
+          const parts = payload.split(',').map(Number);
+          if (parts.length === 5 && !parts.some(isNaN)) {
+            setTriggers({
+              tempMin: parts[0],
+              tempMax: parts[1],
+              humMin: parts[2],
+              humMax: parts[3],
+              lumMax: parts[4],
+            });
+          }
+        }
+      }
     });
 
     mqttClientRef.current = client;
@@ -339,7 +379,7 @@ export function App() {
   };
 
   // ---------------------------------------------------------------------------
-  // SAVE & SYNC TRIGGERS
+  // SAVE & SYNC TRIGGERS (CROSS-DEVICE PC <-> MOBILE VIA MQTT RETAINED)
   // ---------------------------------------------------------------------------
   const handleSaveTriggers = (tMin: number, tMax: number, hMin: number, hMax: number, lMax: number) => {
     setTriggers({
@@ -349,6 +389,28 @@ export function App() {
       humMax: hMax,
       lumMax: lMax,
     });
+
+    // Publica no tópico de triggers com retain: true para sincronizar imediatamente com PC e Celular
+    if (mqttClientRef.current) {
+      const syncPayload = JSON.stringify({
+        tempMin: tMin,
+        tempMax: tMax,
+        humMin: hMin,
+        humMax: hMax,
+        lumMax: lMax,
+        sender: myClientIdRef.current,
+        deviceType: myDeviceType,
+        timestamp: Date.now()
+      });
+
+      try {
+        mqttClientRef.current.publish('/TEF/wine001/triggers', syncPayload, { retain: true, qos: 1 });
+        console.log('>> [MQTT SYNC BROADCAST]', syncPayload);
+      } catch (err) {
+        console.warn('>> [MQTT Erro Sync]', err);
+      }
+    }
+
     // Send set_triggers command to ESP32
     sendMqttCommand(`set_triggers|${tMin},${tMax},${hMin},${hMax},${lMax}`);
   };
@@ -481,6 +543,7 @@ export function App() {
               humMax={triggers.humMax}
               lumMax={triggers.lumMax}
               onSaveTriggers={handleSaveTriggers}
+              lastSyncedDevice={lastSyncedDevice}
             />
           </div>
 
