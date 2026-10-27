@@ -13,6 +13,7 @@
 > **Orientador:** Prof. Dr. Fábio Henrique Cabrini  
 > **Instituição:** FIAP  
 > **Equipe de Desenvolvimento:** Equipe Prisma  
+> **Simulação no Wokwi:** [wokwi.com/projects/479000065440928769](https://wokwi.com/projects/479000065440928769)  
 
 ---
 
@@ -244,6 +245,9 @@ CP5/
 5. O console serial exibirá a conexão Wi-Fi simulada e a publicação contínua no broker MQTT (`broker.hivemq.com`).
 
 #### Opção 2: Pelo Navegador (Wokwi Web)
+> 🔗 **Projeto pronto no Wokwi:** [https://wokwi.com/projects/479000065440928769](https://wokwi.com/projects/479000065440928769) — basta abrir o link e clicar em **Play**.
+
+Para montar o projeto manualmente:
 1. Acesse [wokwi.com](https://wokwi.com/) e inicie um novo projeto para **ESP32**.
 2. Copie o código de [`CP5.ino`](./CP5.ino) para o editor de código.
 3. Cole o conteúdo de [`diagram.json`](./diagram.json) na aba correspondente.
