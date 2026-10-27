@@ -439,6 +439,7 @@ Para garantir o melhor impacto na demonstração ao vivo:
 * **Hyan Hideo Silveira Teodoro Ayabe** — RM: 571005
 * **Elizeu Antônio de Queiroz** — RM: 569433
 * **Guilherme de Sousa Caiano** — RM: 570491
+* **Guilherme Nascimento dos Santos** — RM: 572539
 
 * **Projeto Acadêmico:** FIAP
 * **Disciplina:** Edge Computing e Computer Systems
